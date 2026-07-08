@@ -248,10 +248,19 @@ export async function fetchPostStats(
   platform: MetricPlatform,
   url: string,
 ): Promise<PostStats | null> {
-  if (!isSafePublicUrl(url)) return null;
+  const log = (ok: boolean, note?: string): void => {
+    SCRAPE_LOG[platform] = { platform, ok, at: new Date().toISOString(), note };
+  };
+  if (!isSafePublicUrl(url)) {
+    log(false, "unsafe or invalid url");
+    return null;
+  }
   try {
-    return await FETCHERS[platform](url);
+    const stats = await FETCHERS[platform](url);
+    log(stats !== null, stats === null ? "no data extracted" : undefined);
+    return stats;
   } catch {
+    log(false, "fetcher threw");
     return null;
   }
 }
