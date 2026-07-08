@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,7 +12,6 @@ import {
   Plus,
 } from "lucide-react";
 import type { MetricPlatform } from "@/lib/types";
-import { DEFAULT_HANDLES, profileUrl } from "@/data/handles";
 
 type IconType = React.ComponentType<{ size?: number; className?: string }>;
 type NavItem = { href: string; label: string; icon: IconType; external?: boolean };
@@ -28,7 +26,7 @@ const MAIN: NavItem[] = [
 
 const MEDIA: NavItem[] = [{ href: "/media-kit", label: "Media Kit", icon: IdCard }];
 
-// Platform icons; URLs are built from real handles via profileUrl().
+// Platform icons for the sidebar dashboard links.
 const PLATFORM_ICON: Record<MetricPlatform, { label: string; icon: IconType }> = {
   x: { label: "X", icon: XIcon },
   linkedin: { label: "LinkedIn", icon: LinkedinIcon },
@@ -74,31 +72,19 @@ function GroupLabel({ children }: { children: string }) {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [handles, setHandles] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("hub_handles");
-      if (raw) setHandles(JSON.parse(raw));
-    } catch {
-      // ignore
-    }
-  }, []);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  // Platform entries open their in-app dashboard (posts + analytics), not the
+  // external site — the profile link lives inside each dashboard.
   const platformItems: NavItem[] = (
     Object.keys(PLATFORM_ICON) as MetricPlatform[]
-  ).map((key) => {
-    const handle = handles[key] || DEFAULT_HANDLES[key];
-    return {
-      href: profileUrl(key, handle),
-      label: PLATFORM_ICON[key].label,
-      icon: PLATFORM_ICON[key].icon,
-      external: true,
-    };
-  });
+  ).map((key) => ({
+    href: `/platform/${key}`,
+    label: PLATFORM_ICON[key].label,
+    icon: PLATFORM_ICON[key].icon,
+  }));
 
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]/60 p-4 md:flex">
@@ -115,7 +101,7 @@ export function Sidebar() {
 
         <GroupLabel>Platforms</GroupLabel>
         {platformItems.map((item) => (
-          <NavRow key={item.label} item={item} active={false} />
+          <NavRow key={item.label} item={item} active={isActive(item.href)} />
         ))}
 
         <GroupLabel>Media Kit</GroupLabel>

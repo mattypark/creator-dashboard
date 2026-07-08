@@ -2,7 +2,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { Platform } from "./types";
 import { PLATFORM_META } from "./types";
 
-const MODEL = "claude-sonnet-4-6";
+// Cheapest capable model — fine for scripting, summaries, ideas, and vision
+// extraction. Override with ANTHROPIC_MODEL env if you ever want more power.
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
 export class AINotConfiguredError extends Error {
   constructor() {

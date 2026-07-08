@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron", "schedule": "*/5 * * * *" },
-    { "path": "/api/agent", "schedule": "0 13 * * *" }
+    { "path": "/api/agent", "schedule": "0 13 * * *" },
+    { "path": "/api/refresh-posts", "schedule": "0 14 */2 * *" }
   ]
 }

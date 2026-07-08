@@ -274,12 +274,14 @@ class MemoryDb implements Db {
       platform: input.platform!,
       url: input.url ?? null,
       title: input.title ?? "Untitled",
+      image_url: input.image_url ?? null,
       posted_at: input.posted_at ?? null,
       views: input.views ?? 0,
       likes: input.likes ?? 0,
       comments: input.comments ?? 0,
       shares: input.shares ?? 0,
       saves: input.saves ?? 0,
+      stats_updated_at: input.stats_updated_at ?? null,
       created_at: nowIso(),
     };
     this.posts.push(p);

@@ -102,18 +102,24 @@ create index if not exists idx_suggestions_new
 
 -- Per-post metrics (each video / post / link the creator tracks).
 create table if not exists posts (
-  id          uuid primary key default gen_random_uuid(),
-  platform    text not null check (platform in ('x','linkedin','youtube','instagram','tiktok')),
-  url         text,
-  title       text not null default 'Untitled',
-  posted_at   timestamptz,
-  views       numeric not null default 0,
-  likes       numeric not null default 0,
-  comments    numeric not null default 0,
-  shares      numeric not null default 0,
-  saves       numeric not null default 0,
-  created_at  timestamptz not null default now()
+  id               uuid primary key default gen_random_uuid(),
+  platform         text not null check (platform in ('x','linkedin','youtube','instagram','tiktok')),
+  url              text,
+  title            text not null default 'Untitled',
+  image_url        text,
+  posted_at        timestamptz,
+  views            numeric not null default 0,
+  likes            numeric not null default 0,
+  comments         numeric not null default 0,
+  shares           numeric not null default 0,
+  saves            numeric not null default 0,
+  stats_updated_at timestamptz,
+  created_at       timestamptz not null default now()
 );
+
+-- Safe upgrades if the table was created before these columns existed.
+alter table posts add column if not exists image_url text;
+alter table posts add column if not exists stats_updated_at timestamptz;
 
 create index if not exists idx_posts_platform
   on posts (platform, posted_at desc);

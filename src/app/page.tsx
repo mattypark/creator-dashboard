@@ -10,6 +10,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { Button } from "@/components/ui/Button";
 import { BrainCapture } from "@/components/brain/BrainCapture";
 import { KnowledgeCard } from "@/components/brain/KnowledgeCard";
+import { AnalyticsCharts } from "@/components/hub/AnalyticsCharts";
 
 type Stats = {
   audience: number;
@@ -26,6 +27,8 @@ export default function Overview() {
     suggestions: 0,
   });
   const [recent, setRecent] = useState<KnowledgeItem[]>([]);
+  const [groups, setGroups] = useState<MetricGroup[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
   const [agentBusy, setAgentBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -41,7 +44,9 @@ export default function Overview() {
       fetch("/api/suggestions?status=new").then((x) => x.json()),
     ]);
     const overall: Record<string, number> = metrics.overall ?? {};
-    const views = (metrics.byPlatform as MetricGroup[])
+    const byPlatform = (metrics.byPlatform ?? []) as MetricGroup[];
+    setGroups(byPlatform);
+    const views = byPlatform
       .flatMap((g) => g.metrics)
       .filter((m) => m.metric_key === "views")
       .reduce((sum, m) => sum + m.value, 0);
@@ -63,6 +68,7 @@ export default function Overview() {
     try {
       const r = await fetch("/api/agent", { method: "POST" }).then((x) => x.json());
       await load();
+      setReloadKey((k) => k + 1);
       flash(
         r.ai
           ? `Agent: ${r.suggestions} ideas, ${r.edges} links`
@@ -102,6 +108,22 @@ export default function Overview() {
           <StatTile label="Total views" value={stats.views} sub="across platforms" />
           <StatTile label="Captures" value={stats.captures} sub="in your brain" />
           <StatTile label="New ideas" value={stats.suggestions} sub="from the agent" />
+        </section>
+
+        {/* Analytics — the metrics dashboard (donut, growth, demographics, active hours, top posts) */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-xl font-semibold tracking-tight">
+              Your metrics
+            </h2>
+            <Link
+              href="/hub"
+              className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+            >
+              Connect metrics <ArrowRight size={14} />
+            </Link>
+          </div>
+          <AnalyticsCharts groups={groups} reloadKey={reloadKey} />
         </section>
 
         {/* Recently captured */}

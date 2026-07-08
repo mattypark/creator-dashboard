@@ -58,12 +58,14 @@ export interface Post {
   platform: MetricPlatform;
   url?: string | null;
   title: string;
+  image_url?: string | null; // thumbnail for platform dashboards
   posted_at?: string | null;
   views: number;
   likes: number;
   comments: number;
   shares: number;
   saves: number;
+  stats_updated_at?: string | null; // last successful auto-refresh
   created_at: string;
 }
 

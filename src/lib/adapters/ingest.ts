@@ -73,7 +73,7 @@ function classify(host: string): { platform: MetricPlatform | null; kind: Knowle
   return { platform: null, kind: "link" };
 }
 
-async function timedFetch(url: string, init?: RequestInit): Promise<Response | null> {
+export async function timedFetch(url: string, init?: RequestInit): Promise<Response | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
