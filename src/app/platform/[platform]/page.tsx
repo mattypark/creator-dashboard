@@ -10,7 +10,6 @@ import {
   type MetricSnapshot,
   type Post,
 } from "@/lib/types";
-import { fmt } from "@/lib/format";
 import { DEFAULT_HANDLES, profileUrl } from "@/data/handles";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatTile } from "@/components/ui/StatTile";
@@ -18,6 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { TrendLine } from "@/components/charts/TrendLine";
 import { ActiveHours } from "@/components/charts/ActiveHours";
 import { AudienceBars } from "@/components/mediakit/AudienceBars";
+import { PostCard } from "@/components/platform/PostCard";
 
 const VALID: MetricPlatform[] = ["x", "youtube", "linkedin", "instagram", "tiktok"];
 
@@ -129,6 +129,16 @@ export default function PlatformDashboard() {
     await load();
   }
 
+  async function savePost(id: string, patch: Partial<Post>) {
+    await fetch("/api/posts", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    await load();
+    flash("Post updated");
+  }
+
   const followers = metrics.find(
     (m) => m.metric_key === "followers" || m.metric_key === "subscribers",
   );
@@ -217,66 +227,7 @@ export default function PlatformDashboard() {
           ) : (
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {posts.map((p) => (
-                <article
-                  key={p.id}
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden flex flex-col hover:border-[var(--muted)] transition-colors"
-                >
-                  {p.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={p.image_url}
-                      alt=""
-                      className="w-full h-36 object-cover border-b border-[var(--border)]"
-                      loading="lazy"
-                    />
-                  )}
-                  <div className="p-3 flex flex-col gap-2 flex-1">
-                    {p.url ? (
-                      <a
-                        href={p.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium leading-snug hover:underline line-clamp-2"
-                      >
-                        {p.title}
-                      </a>
-                    ) : (
-                      <div className="text-sm font-medium leading-snug line-clamp-2">
-                        {p.title}
-                      </div>
-                    )}
-                    <div className="grid grid-cols-4 gap-1 text-center mt-auto pt-1">
-                      {[
-                        ["views", p.views],
-                        ["likes", p.likes],
-                        ["comments", p.comments],
-                        ["shares", p.shares],
-                      ].map(([label, value]) => (
-                        <div key={label as string}>
-                          <div className="text-sm font-semibold tabular-nums">
-                            {fmt(value as number)}
-                          </div>
-                          <div className="text-[9px] uppercase tracking-wide text-[var(--muted)]">
-                            {label as string}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] text-[var(--muted)]">
-                      <span>
-                        {p.posted_at
-                          ? new Date(p.posted_at).toLocaleDateString()
-                          : "no date"}
-                      </span>
-                      <button
-                        onClick={() => removePost(p.id)}
-                        className="hover:text-red-500"
-                      >
-                        remove
-                      </button>
-                    </div>
-                  </div>
-                </article>
+                <PostCard key={p.id} post={p} onSave={savePost} onRemove={removePost} />
               ))}
             </div>
           )}

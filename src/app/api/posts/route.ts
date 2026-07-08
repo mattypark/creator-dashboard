@@ -1,6 +1,23 @@
 import { fetchPostStats, platformFromUrl } from "@/lib/adapters/poststats";
 import { getDb } from "@/lib/db";
-import type { MetricPlatform } from "@/lib/types";
+import { PLATFORM_META, type MetricPlatform } from "@/lib/types";
+
+/**
+ * Readable fallback title from a post URL, for platforms that block scraping
+ * (Instagram/LinkedIn wall off datacenter IPs): "Instagram post DIabc123".
+ */
+function titleFromUrl(platform: MetricPlatform, url: string): string {
+  try {
+    const segments = new URL(url).pathname.split("/").filter(Boolean);
+    // Last meaningful segment, skipping generic path words.
+    const skip = new Set(["p", "reel", "reels", "posts", "video", "status", "watch", "shorts"]);
+    const slug = [...segments].reverse().find((s) => !skip.has(s.toLowerCase()));
+    const label = PLATFORM_META[platform].label.split(" ")[0];
+    return slug ? `${label} post ${slug.slice(0, 24)}` : `${label} post`;
+  } catch {
+    return "Untitled";
+  }
+}
 
 export async function GET(request: Request) {
   const db = getDb();
@@ -21,13 +38,16 @@ export async function POST(request: Request) {
   if (!platform)
     return Response.json({ error: "platform required" }, { status: 400 });
 
-  // Auto-enrich from the public post page when a URL is given.
-  let enriched = {};
+  // Auto-enrich from the public post page when a URL is given. When the
+  // scrape comes back empty (IG/LinkedIn block server IPs), fall back to a
+  // readable URL-derived title so the card is never a bare "Untitled".
+  let enriched: Record<string, unknown> = {};
   if (typeof body.url === "string" && body.url.trim()) {
-    const stats = await fetchPostStats(platform, body.url.trim());
+    const url = body.url.trim();
+    const stats = await fetchPostStats(platform, url);
     if (stats) {
       enriched = {
-        title: body.title || stats.title,
+        title: body.title || stats.title || titleFromUrl(platform, url),
         image_url: stats.image_url,
         posted_at: stats.posted_at,
         views: stats.views ?? body.views,
@@ -36,6 +56,8 @@ export async function POST(request: Request) {
         shares: stats.shares ?? body.shares,
         stats_updated_at: new Date().toISOString(),
       };
+    } else if (!body.title) {
+      enriched = { title: titleFromUrl(platform, url) };
     }
   }
 
