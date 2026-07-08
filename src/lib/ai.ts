@@ -160,6 +160,77 @@ export async function extractAnalytics(
   return JSON.parse(raw.slice(start, end + 1)) as ExtractedAnalytics;
 }
 
+type ImageBlock = {
+  type: "image";
+  source: { type: "base64"; media_type: "image/png" | "image/jpeg" | "image/webp"; data: string };
+};
+
+function imageBlock(imageBase64: string, mediaType: string): ImageBlock {
+  return {
+    type: "image",
+    source: {
+      type: "base64",
+      media_type: mediaType as ImageBlock["source"]["media_type"],
+      data: imageBase64,
+    },
+  };
+}
+
+async function visionComplete(
+  imageBase64: string,
+  mediaType: string,
+  prompt: string,
+  maxTokens = 800,
+): Promise<string> {
+  const res = await client().messages.create({
+    model: MODEL,
+    max_tokens: maxTokens,
+    messages: [
+      {
+        role: "user",
+        content: [imageBlock(imageBase64, mediaType), { type: "text", text: prompt }],
+      },
+    ],
+  });
+  return res.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+}
+
+/** Vision: title/summary/tags for an inspiration image saved to the brain. */
+export async function describeImage(
+  imageBase64: string,
+  mediaType: string,
+): Promise<{ title: string; summary: string; tags: string[] }> {
+  const raw = await visionComplete(
+    imageBase64,
+    mediaType,
+    "You are a research librarian for a content creator. Describe this saved " +
+      "inspiration image: a short title (max 8 words), a 1-2 sentence summary of " +
+      "what it shows and why it might be useful for content, and 2-5 short " +
+      'lowercase tags. Respond ONLY with minified JSON: {"title": string, ' +
+      '"summary": string, "tags": string[]}.',
+    400,
+  );
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start === -1 || end === -1) throw new Error("Vision did not return JSON");
+  return JSON.parse(raw.slice(start, end + 1));
+}
+
+/** Vision: turn an image into 3-5 concrete content ideas. */
+export function ideasFromImage(imageBase64: string, mediaType: string): Promise<string> {
+  return visionComplete(
+    imageBase64,
+    mediaType,
+    "You are a content idea machine. Based on what this image shows, return 3-5 " +
+      "distinct, specific content ideas as a plain numbered list. Each one line.",
+    600,
+  );
+}
+
 /** Summarize a captured item and suggest tags. Cheap, one call. */
 export function summarizeCapture(input: {
   title?: string | null;
