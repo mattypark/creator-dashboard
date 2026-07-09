@@ -151,7 +151,7 @@ function score(p: AudienceProfile): number {
   return p.gender.length + p.age.length + p.geo.length + p.active_hours.length;
 }
 
-/** Ledger row with click-to-edit views (manual override for blocked platforms). */
+/** Ledger row with click-to-edit title + views (manual override for blocked platforms). */
 function TopPostRow({
   post,
   index,
@@ -162,12 +162,24 @@ function TopPostRow({
   onSaved: () => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(post.views ?? 0));
+  const [titleDraft, setTitleDraft] = useState(post.title);
+  const [viewsDraft, setViewsDraft] = useState(String(post.views ?? 0));
   const [busy, setBusy] = useState(false);
 
+  function startEdit() {
+    setTitleDraft(post.title);
+    setViewsDraft(String(post.views ?? 0));
+    setEditing(true);
+  }
+
   async function save() {
-    const views = Number(draft.replace(/[,\s]/g, ""));
-    if (!Number.isFinite(views) || views < 0) {
+    const views = Number(viewsDraft.replace(/[,\s]/g, ""));
+    const patch: Partial<Post> = {};
+    if (titleDraft.trim() && titleDraft.trim() !== post.title)
+      patch.title = titleDraft.trim();
+    if (Number.isFinite(views) && views >= 0 && views !== post.views)
+      patch.views = views;
+    if (Object.keys(patch).length === 0) {
       setEditing(false);
       return;
     }
@@ -176,7 +188,7 @@ function TopPostRow({
       await fetch("/api/posts", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: post.id, views }),
+        body: JSON.stringify({ id: post.id, ...patch }),
       });
       setEditing(false);
       onSaved();
@@ -185,44 +197,58 @@ function TopPostRow({
     }
   }
 
+  const onKeys = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") save();
+    if (e.key === "Escape") setEditing(false);
+  };
+
   return (
     <li className="group flex items-center gap-3 py-2 text-sm first:pt-0 last:pb-0">
       <span className="w-5 shrink-0 font-serif text-xs font-semibold text-[var(--muted)]/70 tabular-nums">
         {String(index + 1).padStart(2, "0")}
       </span>
-      <span className="truncate">{post.title}</span>
       {editing ? (
-        <span className="ml-auto flex shrink-0 items-center gap-1">
+        <>
           <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") save();
-              if (e.key === "Escape") setEditing(false);
-            }}
-            inputMode="numeric"
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onKeyDown={onKeys}
             autoFocus
-            className="w-24 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-right text-sm tabular-nums outline-none focus:border-[var(--mango)]"
+            className="min-w-0 flex-1 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-sm outline-none focus:border-[var(--mango)]"
+          />
+          <input
+            value={viewsDraft}
+            onChange={(e) => setViewsDraft(e.target.value)}
+            onKeyDown={onKeys}
+            inputMode="numeric"
+            title="Views"
+            className="w-20 shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-right text-sm tabular-nums outline-none focus:border-[var(--mango)]"
           />
           <button
             onClick={save}
             disabled={busy}
-            className="text-[11px] font-medium text-[var(--mango)] hover:brightness-110 disabled:opacity-50"
+            className="shrink-0 text-[11px] font-medium text-[var(--mango)] hover:brightness-110 disabled:opacity-50"
           >
             {busy ? "…" : "save"}
           </button>
-        </span>
+        </>
       ) : (
-        <button
-          onClick={() => {
-            setDraft(String(post.views ?? 0));
-            setEditing(true);
-          }}
-          title="Click to edit views"
-          className="ml-auto shrink-0 rounded px-1 font-medium text-[var(--blueberry)] tabular-nums transition-colors hover:bg-[var(--surface-2)]"
-        >
-          {fmt(post.views)}
-        </button>
+        <>
+          <button
+            onClick={startEdit}
+            title="Click to edit title"
+            className="min-w-0 truncate rounded px-1 text-left transition-colors hover:bg-[var(--surface-2)]"
+          >
+            {post.title}
+          </button>
+          <button
+            onClick={startEdit}
+            title="Click to edit views"
+            className="ml-auto shrink-0 rounded px-1 font-medium text-[var(--blueberry)] tabular-nums transition-colors hover:bg-[var(--surface-2)]"
+          >
+            {fmt(post.views)}
+          </button>
+        </>
       )}
     </li>
   );

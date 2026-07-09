@@ -97,7 +97,10 @@ export async function POST(request: Request) {
     }
 
     // Merge extracted posts into existing rows (fuzzy title match) — only
-    // create a new post when nothing on this platform matches.
+    // create a new post when nothing on this platform matches. The uploaded
+    // screenshot is attached as the post image (when it has none) so the
+    // analytics evidence stays with the stats.
+    const screenshotDataUrl = `data:${body.mediaType || "image/png"};base64,${body.imageBase64}`;
     let matchedPosts = 0;
     let newPosts = 0;
     const existing = await db.listPosts(platform);
@@ -105,10 +108,16 @@ export async function POST(request: Request) {
       const patch = postPatch(p);
       const match = existing.find((e) => titlesMatch(e.title, p.title));
       if (match) {
+        if (!match.image_url) patch.image_url = screenshotDataUrl;
         if (Object.keys(patch).length) await db.updatePost(match.id, patch);
         matchedPosts++;
       } else {
-        const created = await db.createPost({ platform, title: p.title, ...patch });
+        const created = await db.createPost({
+          platform,
+          title: p.title,
+          image_url: screenshotDataUrl,
+          ...patch,
+        });
         existing.push(created); // dedupe repeats within the same screenshot
         newPosts++;
       }
