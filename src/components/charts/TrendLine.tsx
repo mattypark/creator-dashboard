@@ -12,7 +12,7 @@ type Props = {
 };
 
 /** SVG area+line trend. Scales to container width via viewBox. */
-export function TrendLine({ points, color = "var(--mango)", height = 120 }: Props) {
+export function TrendLine({ points, color = "var(--blueberry)", height = 120 }: Props) {
   if (points.length < 2) {
     return (
       <div className="flex h-28 items-center justify-center text-xs text-[var(--muted)]">
@@ -41,7 +41,9 @@ export function TrendLine({ points, color = "var(--mango)", height = 120 }: Prop
       <div className="flex items-baseline gap-2">
         <span className="font-serif text-2xl font-semibold tabular-nums">{fmt(last)}</span>
         <span
-          className={`text-xs font-medium ${deltaPct >= 0 ? "text-[var(--mango)]" : "text-red-500"}`}
+          className={`text-xs font-medium tabular-nums ${
+            deltaPct >= 0 ? "text-[var(--blueberry)]" : "text-[var(--danger)]"
+          }`}
         >
           {deltaPct >= 0 ? "+" : ""}
           {deltaPct}%
@@ -50,10 +52,23 @@ export function TrendLine({ points, color = "var(--mango)", height = 120 }: Prop
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height }} preserveAspectRatio="none">
         <defs>
           <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+            <stop offset="0%" stopColor={color} stopOpacity="0.22" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
+        {/* Editorial hairline gridlines. */}
+        {[0.25, 0.5, 0.75].map((t) => (
+          <line
+            key={t}
+            x1={pad}
+            x2={W - pad}
+            y1={pad + t * (H - pad * 2)}
+            y2={pad + t * (H - pad * 2)}
+            stroke="var(--border)"
+            strokeWidth={0.75}
+            strokeDasharray="2 5"
+          />
+        ))}
         <polygon points={area} fill="url(#trendFill)" />
         <motion.polyline
           points={line}

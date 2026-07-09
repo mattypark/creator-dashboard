@@ -159,7 +159,7 @@ function stopServer() {
     // broad system-wide pkill.
     process.kill(-pid, "SIGTERM");
     log(`[e2e] Sent SIGTERM to server process group (pgid ${pid}).`);
-  } catch (err) {
+  } catch {
     try {
       serverHandle.child.kill("SIGTERM");
       log(`[e2e] Sent SIGTERM directly to server pid ${pid}.`);

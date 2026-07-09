@@ -26,7 +26,10 @@ export default function ScriptsPage() {
   }, []);
 
   useEffect(() => {
-    load();
+    async function runLoad() {
+      await load();
+    }
+    runLoad();
   }, [load]);
 
   const filtered = useMemo(() => {

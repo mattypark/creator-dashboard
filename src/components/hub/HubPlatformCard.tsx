@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { fmt } from "@/lib/format";
 import type { MetricGroup } from "@/components/metrics/MetricsSidebar";
+import { PLATFORM_COLOR } from "@/components/charts/palette";
 
 type Props = {
   group: MetricGroup;
@@ -38,11 +39,11 @@ export function HubPlatformCard({
   }
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-3">
+    <div className="card card-hover p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span
-          className="w-2.5 h-2.5 rounded-full"
-          style={{ background: group.color }}
+          className="w-2.5 h-2.5 rounded-full shadow-[inset_0_0_0_1px_rgba(33,29,20,0.12)]"
+          style={{ background: PLATFORM_COLOR[group.platform] ?? group.color }}
         />
         <span className="text-sm font-semibold">{group.label}</span>
         {profileUrl && !editingHandle && (
@@ -50,7 +51,7 @@ export function HubPlatformCard({
             href={profileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-[11px] text-indigo-300 hover:text-indigo-200"
+            className="ml-auto text-[11px] font-medium text-[var(--blueberry)] transition-colors duration-300 ease-lux hover:text-[var(--foreground)]"
           >
             @{handle} ↗
           </a>
@@ -74,7 +75,7 @@ export function HubPlatformCard({
             value={handleDraft}
             onChange={(e) => setHandleDraft(e.target.value)}
             placeholder="handle (no @)"
-            className="flex-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-md px-2 py-1 text-xs outline-none"
+            className="input-engraved flex-1 rounded-md px-2 py-1 text-xs outline-none"
           />
           <button
             onClick={() => {
@@ -95,11 +96,11 @@ export function HubPlatformCard({
       ) : (
         <div className="flex flex-col gap-1">
           {group.metrics.map((m) => (
-            <div key={m.metric_key} className="flex justify-between text-sm">
+            <div key={m.metric_key} className="flex items-baseline justify-between text-sm">
               <span className="capitalize text-[var(--muted)]">
                 {m.metric_key}
               </span>
-              <span className="font-semibold">{fmt(m.value)}</span>
+              <span className="font-serif font-semibold tabular-nums">{fmt(m.value)}</span>
             </div>
           ))}
         </div>
@@ -110,7 +111,7 @@ export function HubPlatformCard({
           value={metricKey}
           onChange={(e) => setMetricKey(e.target.value)}
           placeholder="metric"
-          className="w-24 bg-[var(--surface-2)] border border-[var(--border)] rounded-md px-2 py-1 text-xs outline-none"
+          className="input-engraved w-24 rounded-md px-2 py-1 text-xs outline-none"
         />
         <input
           value={metricValue}
@@ -118,12 +119,12 @@ export function HubPlatformCard({
           onKeyDown={(e) => e.key === "Enter" && add()}
           inputMode="numeric"
           placeholder="value"
-          className="flex-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-md px-2 py-1 text-xs outline-none"
+          className="input-engraved flex-1 rounded-md px-2 py-1 text-xs outline-none"
         />
         <button
           onClick={add}
           disabled={adding || !metricValue.trim()}
-          className="text-xs border border-[var(--border)] rounded-md px-2 py-1 hover:bg-[var(--surface-2)] disabled:opacity-50"
+          className="btn-engraved rounded-md px-2 py-1 text-xs disabled:opacity-50"
         >
           {adding ? "…" : "add"}
         </button>

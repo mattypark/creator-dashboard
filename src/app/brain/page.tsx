@@ -33,8 +33,10 @@ export default function BrainPage() {
   }, []);
 
   useEffect(() => {
-    load();
-    loadSuggestions();
+    async function runLoad() {
+      await Promise.all([load(), loadSuggestions()]);
+    }
+    runLoad();
   }, [load, loadSuggestions]);
 
   async function runAgent() {

@@ -36,13 +36,20 @@ export default function HubPage() {
   }, []);
 
   useEffect(() => {
-    load();
-    try {
-      const raw = localStorage.getItem(HANDLES_KEY);
-      setHandles({ ...DEFAULT_HANDLES, ...(raw ? JSON.parse(raw) : {}) });
-    } catch {
-      setHandles({ ...DEFAULT_HANDLES });
+    async function runLoad() {
+      await load();
     }
+    runLoad();
+
+    function restoreHandles() {
+      try {
+        const raw = localStorage.getItem(HANDLES_KEY);
+        setHandles({ ...DEFAULT_HANDLES, ...(raw ? JSON.parse(raw) : {}) });
+      } catch {
+        setHandles({ ...DEFAULT_HANDLES });
+      }
+    }
+    restoreHandles();
   }, [load]);
 
   function saveHandle(platform: string, handle: string) {
@@ -93,7 +100,7 @@ export default function HubPage() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-      <div className="max-w-5xl mx-auto p-6 flex flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-8">
         <PageHeader
           kicker="Creator footprint"
           title="Hub"
@@ -104,33 +111,40 @@ export default function HubPage() {
           }
         />
 
-        <OverallCard overall={overall} />
+        <section className="flex flex-col gap-4">
+          <OverallCard overall={overall} />
+          <MetricsUpload onIngested={afterIngest} flash={flash} />
+        </section>
 
-        <MetricsUpload onIngested={afterIngest} flash={flash} />
+        <section className="flex flex-col gap-4">
+          <h2 className="font-serif text-[22px] font-semibold tracking-tight">
+            Analytics
+          </h2>
+          <AnalyticsCharts groups={groups} reloadKey={reloadKey} />
+        </section>
 
-        <AnalyticsCharts groups={groups} reloadKey={reloadKey} />
-
-        <PostEntry onAdded={afterIngest} flash={flash} />
-
-        <h2 className="font-serif text-xl font-semibold tracking-tight mt-2">
-          Platforms
-        </h2>
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((g) => (
-            <HubPlatformCard
-              key={g.platform}
-              group={g}
-              handle={handles[g.platform] ?? ""}
-              profileUrl={profileUrl(g.platform, handles[g.platform] ?? "")}
-              onSaveHandle={(h) => saveHandle(g.platform, h)}
-              onAddMetric={(key, value) => addMetric(g.platform, key, value)}
-            />
-          ))}
-        </div>
+        <section className="flex flex-col gap-4">
+          <h2 className="font-serif text-[22px] font-semibold tracking-tight">
+            Platforms
+          </h2>
+          <PostEntry onAdded={afterIngest} flash={flash} />
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {groups.map((g) => (
+              <HubPlatformCard
+                key={g.platform}
+                group={g}
+                handle={handles[g.platform] ?? ""}
+                profileUrl={profileUrl(g.platform, handles[g.platform] ?? "")}
+                onSaveHandle={(h) => saveHandle(g.platform, h)}
+                onAddMetric={(key, value) => addMetric(g.platform, key, value)}
+              />
+            ))}
+          </div>
+        </section>
       </div>
 
       {toast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] rounded-lg px-4 py-2 text-sm shadow-lg z-30">
+        <div className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[var(--foreground)] px-5 py-2 text-sm text-[var(--background)] shadow-[0_1px_0_rgba(255,255,255,0.12)_inset,0_12px_32px_-12px_rgba(33,29,20,0.6)]">
           {toast}
         </div>
       )}

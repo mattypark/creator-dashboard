@@ -19,7 +19,7 @@ export function StatTile({ label, value, sub, accent }: Props) {
 
   useEffect(() => {
     if (reduce) {
-      setDisplay(value);
+      prev.current = value;
       return;
     }
     const controls = animate(prev.current, value, {
@@ -31,19 +31,21 @@ export function StatTile({ label, value, sub, accent }: Props) {
     return () => controls.stop();
   }, [value, reduce]);
 
+  // When reduced motion is on, the value is static — derive it during render
+  // instead of routing it through state.
+  const displayValue = reduce ? value : display;
+
   return (
-    <div
-      className={`border-t-2 pt-3 ${accent ? "border-[var(--mango)]" : "border-[var(--foreground)]"}`}
-    >
+    <div className="stat-tile" data-accent={accent ? "true" : undefined}>
       <p className="kicker">{label}</p>
       <p
-        className={`font-serif text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl ${
+        className={`mt-1 font-serif text-4xl font-semibold tabular-nums tracking-[-0.02em] sm:text-5xl ${
           accent ? "text-[var(--mango)]" : ""
         }`}
       >
-        {fmt(Math.round(display))}
+        {fmt(Math.round(displayValue))}
       </p>
-      {sub && <p className="mt-1 text-xs text-[var(--muted)]">{sub}</p>}
+      {sub && <p className="mt-1.5 text-xs text-[var(--muted)]">{sub}</p>}
     </div>
   );
 }

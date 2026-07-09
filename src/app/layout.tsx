@@ -13,10 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Variable font with the optical-size axis: large headings render in the
+// high-contrast display cut, small text in the sturdier text cut.
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: ["400", "600"],
+  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {

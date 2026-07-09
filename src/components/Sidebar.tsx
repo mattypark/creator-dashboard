@@ -37,18 +37,28 @@ const PLATFORM_ICON: Record<MetricPlatform, { label: string; icon: IconType }> =
 
 function NavRow({ item, active }: { item: NavItem; active: boolean }) {
   const Icon = item.icon;
-  const cls = `group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all ${
+  const cls = `group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-300 ease-lux ${
     active
-      ? "font-medium text-[var(--foreground)] bg-[var(--mango)]/10"
-      : "text-[var(--muted)] hover:translate-x-0.5 hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+      ? "font-medium text-[var(--foreground)] bg-[var(--surface)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_1px_3px_rgba(33,29,20,0.08)]"
+      : "text-[var(--muted)] hover:translate-x-0.5 hover:bg-[var(--surface)]/70 hover:text-[var(--foreground)]"
   }`;
   const inner = (
     <>
-      <Icon size={17} className={active ? "text-[var(--mango)]" : ""} />
-      <span>{item.label}</span>
       {active && (
-        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--mango)]" />
+        <span
+          aria-hidden
+          className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--mango)]"
+        />
       )}
+      <Icon
+        size={17}
+        className={
+          active
+            ? "text-[var(--mango)]"
+            : "text-[var(--muted)]/80 transition-colors duration-300 group-hover:text-[var(--foreground)]"
+        }
+      />
+      <span>{item.label}</span>
     </>
   );
   return item.external ? (
@@ -64,8 +74,9 @@ function NavRow({ item, active }: { item: NavItem; active: boolean }) {
 
 function GroupLabel({ children }: { children: string }) {
   return (
-    <p className="mb-1 mt-5 px-3 text-[11px] font-medium uppercase tracking-wider text-[var(--muted)]/70">
-      {children}
+    <p className="mb-1.5 mt-6 flex items-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]/75">
+      <span>{children}</span>
+      <span aria-hidden className="h-px flex-1 bg-[var(--border)]" />
     </p>
   );
 }
@@ -87,11 +98,18 @@ export function Sidebar() {
   }));
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]/60 p-4 md:flex">
-      <Link href="/" className="mb-6 flex items-center gap-2 px-2">
-        <span className="text-lg font-serif font-semibold tracking-tight lowercase">
+    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-[var(--border)] bg-gradient-to-b from-[var(--surface)]/80 to-[var(--surface)]/40 p-4 md:flex">
+      <Link href="/" className="group mb-6 flex flex-col gap-1.5 px-2 pt-1">
+        <span className="text-xl font-serif font-semibold tracking-tight lowercase leading-none">
           studio<span className="text-[var(--mango)]">.</span>
         </span>
+        <span className="text-[9px] font-semibold uppercase tracking-[0.28em] text-[var(--muted)]/70">
+          Content OS
+        </span>
+        <span
+          aria-hidden
+          className="mt-1.5 block h-px w-full bg-gradient-to-r from-[var(--foreground)]/25 via-[var(--border)] to-transparent"
+        />
       </Link>
 
       <nav className="flex flex-col">
@@ -112,7 +130,7 @@ export function Sidebar() {
 
       <Link
         href="/brain"
-        className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-[var(--mango)] px-3 py-2 text-sm font-medium text-white transition-transform hover:brightness-105 active:scale-[0.98]"
+        className="btn-minted mt-auto flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium"
       >
         <Plus size={16} /> Capture
       </Link>

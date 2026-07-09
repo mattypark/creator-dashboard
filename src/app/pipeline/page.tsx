@@ -27,7 +27,10 @@ export default function PipelinePage() {
   }, []);
 
   useEffect(() => {
-    loadScripts();
+    async function runLoad() {
+      await loadScripts();
+    }
+    runLoad();
   }, [loadScripts]);
 
   const filtered = useMemo(() => {

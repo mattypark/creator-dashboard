@@ -1,6 +1,7 @@
 "use client";
 
 import { PLATFORM_META, type KnowledgeItem, type MetricPlatform } from "@/lib/types";
+import { PLATFORM_COLOR } from "@/components/charts/palette";
 
 const KIND_ICON: Record<KnowledgeItem["kind"], string> = {
   link: "🔗",
@@ -34,7 +35,7 @@ export function KnowledgeCard({ item, onPromote, onDelete, isBusy }: Props) {
   const excerpt = item.summary || item.raw_text;
 
   return (
-    <article className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden flex flex-col hover:border-[var(--muted)] transition-colors">
+    <article className="card card-hover overflow-hidden flex flex-col">
       {item.image_url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -50,8 +51,8 @@ export function KnowledgeCard({ item, onPromote, onDelete, isBusy }: Props) {
           <span className="uppercase tracking-wide">{item.kind}</span>
           {platform && (
             <span
-              className="ml-auto w-2 h-2 rounded-full"
-              style={{ background: PLATFORM_META[platform].color }}
+              className="ml-auto w-2 h-2 rounded-full shadow-[inset_0_0_0_1px_rgba(33,29,20,0.12)]"
+              style={{ background: PLATFORM_COLOR[platform] }}
               title={PLATFORM_META[platform].label}
             />
           )}
@@ -107,7 +108,7 @@ export function KnowledgeCard({ item, onPromote, onDelete, isBusy }: Props) {
           )}
           <button
             onClick={() => onDelete(item)}
-            className="text-[11px] text-[var(--muted)] hover:text-red-500 ml-auto"
+            className="text-[11px] text-[var(--muted)] transition-colors duration-300 hover:text-[var(--danger)] ml-auto"
           >
             delete
           </button>

@@ -20,7 +20,7 @@ import {
   partners,
 } from "@/data/kit";
 
-const GENDER_COLORS = ["var(--blueberry)", "var(--mango)", "#9aa0ac"];
+import { GENDER_COLORS } from "@/components/charts/palette";
 
 function richness(p: AudienceProfile): number {
   return p.gender.length + p.age.length + p.geo.length + p.active_hours.length;
@@ -118,15 +118,16 @@ export default function MediaKitPage() {
               {identity.email} →
             </a>
           </div>
-          <div className="grid grid-cols-3 gap-5">
+          <div className="grid grid-cols-3 gap-6">
             {identity.headline.map((m) => (
               <div
                 key={m.label}
-                className={`border-t-2 pt-3 ${m.highlight ? "border-[var(--mango)]" : "border-[var(--foreground)]"}`}
+                className="stat-tile"
+                data-accent={m.highlight ? "true" : undefined}
               >
                 <p className="kicker">{m.label}</p>
                 <p
-                  className={`font-serif text-3xl font-semibold tracking-tight sm:text-4xl ${
+                  className={`mt-1 font-serif text-3xl font-semibold tracking-[-0.02em] sm:text-4xl ${
                     m.highlight ? "text-[var(--mango)]" : ""
                   }`}
                 >
@@ -144,10 +145,7 @@ export default function MediaKitPage() {
               const followers =
                 live[p.key] != null ? fmt(live[p.key]) : p.followers;
               return (
-                <div
-                  key={p.key}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
-                >
+                <div key={p.key} className="card card-hover p-5">
                   <div className="flex items-baseline justify-between">
                     <div>
                       <div className="font-semibold">{p.name}</div>
@@ -161,7 +159,7 @@ export default function MediaKitPage() {
                       </a>
                     </div>
                     <div className="text-right">
-                      <div className="font-serif text-2xl font-semibold text-[var(--blueberry)]">
+                      <div className="font-serif text-2xl font-semibold tabular-nums tracking-tight text-[var(--blueberry)]">
                         {followers}
                       </div>
                       {p.followersDelta && (
@@ -238,10 +236,7 @@ export default function MediaKitPage() {
                 }))
               : showcase
             ).map((s) => (
-              <div
-                key={s.title}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col gap-2"
-              >
+              <div key={s.title} className="card card-hover p-5 flex flex-col gap-2">
                 <div className="font-serif text-lg font-semibold leading-snug">
                   {s.title}
                 </div>
@@ -260,10 +255,8 @@ export default function MediaKitPage() {
             {services.map((sv) => (
               <div
                 key={sv.name}
-                className={`rounded-xl border p-4 flex flex-col gap-3 ${
-                  sv.featured
-                    ? "border-[var(--mango)] bg-[var(--mango)]/5"
-                    : "border-[var(--border)] bg-[var(--surface)]"
+                className={`p-5 flex flex-col gap-3 ${
+                  sv.featured ? "note-gold" : "card card-hover"
                 }`}
               >
                 <div className="flex items-center justify-between">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { PLATFORM_META, type AudienceProfile, type MetricPlatform, type MetricSnapshot, type Post } from "@/lib/types";
+import type { AudienceProfile, MetricSnapshot, Post } from "@/lib/types";
 import type { MetricGroup } from "@/components/metrics/MetricsSidebar";
 import { fmt } from "@/lib/format";
 import { DonutChart, type Slice } from "@/components/charts/DonutChart";
@@ -9,11 +9,11 @@ import { TrendLine } from "@/components/charts/TrendLine";
 import { ActiveHours } from "@/components/charts/ActiveHours";
 import { AudienceBars } from "@/components/mediakit/AudienceBars";
 
-const GENDER_COLORS = ["var(--blueberry)", "var(--mango)", "#9aa0ac"];
+import { PLATFORM_COLOR, GENDER_COLORS } from "@/components/charts/palette";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col gap-3">
+    <div className="card card-hover p-5 flex flex-col gap-3.5">
       <p className="kicker">{title}</p>
       {children}
     </div>
@@ -34,7 +34,7 @@ export function AnalyticsCharts({ groups, reloadKey }: Props) {
         (m) => m.metric_key === "followers" || m.metric_key === "subscribers",
       );
       return f
-        ? { label: g.label, value: f.value, color: PLATFORM_META[g.platform].color }
+        ? { label: g.label, value: f.value, color: PLATFORM_COLOR[g.platform] }
         : null;
     })
     .filter((s): s is Slice => s !== null && s.value > 0);
@@ -52,7 +52,10 @@ export function AnalyticsCharts({ groups, reloadKey }: Props) {
   }, []);
 
   useEffect(() => {
-    load();
+    async function runLoad() {
+      await load();
+    }
+    runLoad();
   }, [load, reloadKey]);
 
   // Growth history for the biggest platform's followers.
@@ -83,7 +86,7 @@ export function AnalyticsCharts({ groups, reloadKey }: Props) {
   const trendPoints = history.map((h) => ({ label: h.captured_at, value: h.value }));
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2">
       <Card title="Audience by platform">
         {followerSlices.length ? (
           <DonutChart
@@ -133,16 +136,22 @@ export function AnalyticsCharts({ groups, reloadKey }: Props) {
 
       {topPosts.length > 0 && (
         <Card title="Top posts">
-          <ul className="flex flex-col gap-2">
-            {topPosts.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-2 text-sm">
+          <ol className="flex flex-col divide-y divide-[var(--border)]/70">
+            {topPosts.map((p, i) => (
+              <li
+                key={p.id}
+                className="flex items-center gap-3 py-2 text-sm first:pt-0 last:pb-0"
+              >
+                <span className="w-5 shrink-0 font-serif text-xs font-semibold text-[var(--muted)]/70 tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <span className="truncate">{p.title}</span>
-                <span className="shrink-0 font-medium text-[var(--mango)] tabular-nums">
+                <span className="ml-auto shrink-0 font-medium text-[var(--blueberry)] tabular-nums">
                   {fmt(p.views)}
                 </span>
               </li>
             ))}
-          </ul>
+          </ol>
         </Card>
       )}
     </div>

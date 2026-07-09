@@ -60,7 +60,10 @@ export default function Overview() {
   }, []);
 
   useEffect(() => {
-    load();
+    async function runLoad() {
+      await load();
+    }
+    runLoad();
   }, [load]);
 
   async function runAgent() {
@@ -85,7 +88,7 @@ export default function Overview() {
         <PageHeader kicker="Your content" title="Overview" />
 
         {/* Act on today */}
-        <section className="rounded-xl border border-[var(--mango)]/30 bg-[var(--mango)]/5 p-5 flex flex-col gap-4">
+        <section className="note-gold p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <p className="kicker flex items-center gap-2">
               <Sparkles size={13} className="text-[var(--mango)]" /> Capture today
@@ -103,7 +106,7 @@ export default function Overview() {
         </section>
 
         {/* Stat tiles */}
-        <section className="grid gap-5 grid-cols-2 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
           <StatTile label="Audience" value={stats.audience} sub="followers + subs" accent />
           <StatTile label="Total views" value={stats.views} sub="across platforms" />
           <StatTile label="Captures" value={stats.captures} sub="in your brain" />
@@ -113,14 +116,18 @@ export default function Overview() {
         {/* Analytics — the metrics dashboard (donut, growth, demographics, active hours, top posts) */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-semibold tracking-tight">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight">
               Your metrics
             </h2>
             <Link
               href="/hub"
-              className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+              className="group inline-flex items-center gap-1 text-sm text-[var(--muted)] transition-colors duration-300 ease-lux hover:text-[var(--foreground)]"
             >
-              Connect metrics <ArrowRight size={14} />
+              Connect metrics{" "}
+              <ArrowRight
+                size={14}
+                className="transition-transform duration-300 ease-lux group-hover:translate-x-0.5"
+              />
             </Link>
           </div>
           <AnalyticsCharts groups={groups} reloadKey={reloadKey} />
@@ -129,18 +136,22 @@ export default function Overview() {
         {/* Recently captured */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-semibold tracking-tight">
+            <h2 className="font-serif text-[22px] font-semibold tracking-tight">
               Recently captured
             </h2>
             <Link
               href="/brain"
-              className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
+              className="group inline-flex items-center gap-1 text-sm text-[var(--muted)] transition-colors duration-300 ease-lux hover:text-[var(--foreground)]"
             >
-              View all <ArrowRight size={14} />
+              View all{" "}
+              <ArrowRight
+                size={14}
+                className="transition-transform duration-300 ease-lux group-hover:translate-x-0.5"
+              />
             </Link>
           </div>
           {recent.length === 0 ? (
-            <div className="text-sm text-[var(--muted)] text-center border border-dashed border-[var(--border)] rounded-xl py-14">
+            <div className="rounded-[var(--radius)] border border-dashed border-[color-mix(in_oklab,var(--muted)_35%,var(--border))] py-14 text-center text-sm text-[var(--muted)]">
               Nothing captured yet. Paste a link or dump a thought above.
             </div>
           ) : (
@@ -160,7 +171,7 @@ export default function Overview() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] rounded-lg px-4 py-2 text-sm shadow-lg z-30">
+        <div className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[var(--foreground)] px-5 py-2 text-sm text-[var(--background)] shadow-[0_1px_0_rgba(255,255,255,0.12)_inset,0_12px_32px_-12px_rgba(33,29,20,0.6)]">
           {toast}
         </div>
       )}

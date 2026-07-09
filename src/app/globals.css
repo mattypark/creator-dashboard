@@ -1,24 +1,49 @@
 @import "tailwindcss";
 
 /*
- * Content OS — "healthy" identity: cream paper, mango primary, blueberry
- * secondary. Deliberately NOT the Bery charcoal/berry palette — same editorial
- * structure, its own skin.
+ * Content OS — "healthy old money" identity: cream paper, burnished marigold
+ * primary, deep racing-green secondary. Heritage-brand editorial structure —
+ * refined serif display, hairline rules, engraved surfaces — kept fresh with
+ * warm light and disciplined motion. Deliberately NOT the Bery charcoal/berry
+ * palette — same editorial bones, its own skin.
  */
 :root {
-  --background: #f5f0e6; /* warm cream paper */
-  --surface: #fbf7ef; /* raised card */
-  --surface-2: #efe8db; /* sunken chip / hover */
-  --border: #e4dccc; /* warm hairline */
-  --foreground: #1b1d2e; /* blueberry-ink text */
-  --muted: #6b6f7d; /* secondary text */
+  --background: #f4efe3; /* warm cream paper */
+  --surface: #fbf7ec; /* raised card */
+  --surface-2: #ebe2cd; /* sunken chip / hover */
+  --border: #e0d6bf; /* warm hairline */
+  --hairline: rgba(56, 48, 32, 0.14); /* thin editorial rule */
+  --foreground: #211d14; /* warm espresso ink */
+  --muted: #6f6755; /* secondary text, warm */
 
-  --mango: #f28c1e; /* primary accent */
-  --mango-soft: #ffb257;
-  --blueberry: #5b57d1; /* secondary accent */
-  --blueberry-soft: #8b88e6;
+  /*
+   * Accent lineage: --mango is now a burnished marigold (gold), --blueberry
+   * a deep racing green. Var names kept so every consumer inherits the
+   * heritage palette without renames. Both pass >=4.5:1 on cream.
+   */
+  --mango: #a1580c; /* primary accent — burnished marigold */
+  --mango-soft: #c98a3a;
+  --blueberry: #2d5f4b; /* secondary accent — racing green */
+  --blueberry-soft: #5d8a76;
+  --danger: #a83a2e; /* madder red, legible on cream */
+
+  /* Muted heritage tones for platform data marks (charts, dots). */
+  --data-x: #46759c;
+  --data-linkedin: #2e5385;
+  --data-youtube: #a63a30;
+  --data-instagram: #9d4f6d;
+  --data-tiktok: #3d8b84;
 
   --radius: 0.75rem;
+  --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 2px rgba(33, 29, 20, 0.05),
+    0 10px 28px -18px rgba(33, 29, 20, 0.22);
+  --shadow-lift:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 2px 4px rgba(33, 29, 20, 0.06),
+    0 18px 38px -18px rgba(33, 29, 20, 0.28);
 }
 
 @theme inline {
@@ -36,26 +61,290 @@
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      color-mix(in oklab, var(--background) 96%, #fffdf5) 0%,
+      var(--background) 55%
+    );
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Paper grain — the material signature. Fixed overlay, never interactive. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 * {
   border-color: var(--border);
 }
 
+html {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted) 40%, transparent) transparent;
+}
+
 /* Small-caps eyebrow label used above headings and on stat tiles. */
 .kicker {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10.5px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   color: var(--muted);
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--mango) 28%, transparent);
+  background: color-mix(in oklab, var(--mango) 24%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--mango) 65%, transparent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Surfaces — layered paper instead of flat boxes.
+ * ------------------------------------------------------------------------- */
+.card {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 94%, #ffffff) 0%,
+    var(--surface) 100%
+  );
+  box-shadow: var(--shadow-card);
+}
+
+.card-hover {
+  transition:
+    transform 0.4s var(--ease-lux),
+    box-shadow 0.4s var(--ease-lux),
+    border-color 0.4s var(--ease-lux);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--border) 55%, var(--muted) 45%);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Gold-tinted note surface (capture panel, featured cards). */
+.note-gold {
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in oklab, var(--mango) 28%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--mango) 7%, var(--surface)) 0%,
+    color-mix(in oklab, var(--mango) 2%, var(--surface)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 10px 28px -20px rgba(33, 29, 20, 0.28);
+}
+
+/* Green-tinted equivalent (ingest / data-entry panels). */
+.note-green {
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in oklab, var(--blueberry) 26%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--blueberry) 6%, var(--surface)) 0%,
+    color-mix(in oklab, var(--blueberry) 2%, var(--surface)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 10px 28px -20px rgba(33, 29, 20, 0.28);
+}
+
+/* Sunken input — engraved into the paper. */
+.input-engraved {
+  background: color-mix(in oklab, var(--surface-2) 45%, var(--surface));
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 3px rgba(33, 29, 20, 0.07);
+  transition:
+    border-color 0.3s var(--ease-lux),
+    box-shadow 0.3s var(--ease-lux);
+}
+
+.input-engraved:focus,
+.input-engraved:focus-within {
+  border-color: color-mix(in oklab, var(--mango) 55%, var(--border));
+  box-shadow:
+    inset 0 1px 3px rgba(33, 29, 20, 0.06),
+    0 0 0 3px color-mix(in oklab, var(--mango) 12%, transparent);
+  outline: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Buttons — minted primary, engraved outline.
+ * ------------------------------------------------------------------------- */
+.btn-minted {
+  color: #fdf9ef;
+  border: 1px solid color-mix(in oklab, var(--mango) 80%, black 20%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--mango) 84%, #f2d9a8) 0%,
+    var(--mango) 52%,
+    color-mix(in oklab, var(--mango) 90%, black 10%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 2px rgba(33, 29, 20, 0.2),
+    0 8px 18px -12px color-mix(in oklab, var(--mango) 70%, transparent);
+  transition:
+    transform 0.3s var(--ease-lux),
+    box-shadow 0.3s var(--ease-lux),
+    filter 0.3s var(--ease-lux);
+}
+
+.btn-minted:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 2px 4px rgba(33, 29, 20, 0.18),
+    0 12px 24px -12px color-mix(in oklab, var(--mango) 75%, transparent);
+}
+
+.btn-minted:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-minted-green {
+  color: #f2f7f0;
+  border: 1px solid color-mix(in oklab, var(--blueberry) 80%, black 20%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--blueberry) 84%, #cfe3d3) 0%,
+    var(--blueberry) 52%,
+    color-mix(in oklab, var(--blueberry) 90%, black 10%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 2px rgba(33, 29, 20, 0.2),
+    0 8px 18px -12px color-mix(in oklab, var(--blueberry) 70%, transparent);
+  transition:
+    transform 0.3s var(--ease-lux),
+    box-shadow 0.3s var(--ease-lux),
+    filter 0.3s var(--ease-lux);
+}
+
+.btn-minted-green:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.btn-minted-green:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-engraved {
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 92%, #ffffff) 0%,
+    color-mix(in oklab, var(--surface) 90%, var(--surface-2)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 2px rgba(33, 29, 20, 0.07);
+  transition:
+    transform 0.3s var(--ease-lux),
+    box-shadow 0.3s var(--ease-lux),
+    border-color 0.3s var(--ease-lux);
+}
+
+.btn-engraved:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--border) 50%, var(--muted) 50%);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 3px 8px -3px rgba(33, 29, 20, 0.16);
+}
+
+.btn-engraved:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ---------------------------------------------------------------------------
+ * Editorial rules — masthead and stat tiles.
+ * ------------------------------------------------------------------------- */
+
+/* Thick-thin double rule under page mastheads (classic broadsheet). */
+.masthead {
+  position: relative;
+  border-bottom: 2px solid color-mix(in oklab, var(--foreground) 88%, transparent);
+}
+
+.masthead::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 1px;
+  background: var(--hairline);
+}
+
+/* Signature flourish: a gold hairline that draws across the masthead. */
+.masthead::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 2px;
+  width: 72px;
+  background: var(--mango);
+  transform-origin: left center;
+  animation: rule-draw 1s var(--ease-lux) 0.15s backwards;
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Stat tile: thick ink rule with a hairline echo beneath it. */
+.stat-tile {
+  position: relative;
+  border-top: 2px solid color-mix(in oklab, var(--foreground) 88%, transparent);
+  padding-top: 0.85rem;
+}
+
+.stat-tile::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.stat-tile[data-accent="true"] {
+  border-top-color: var(--mango);
+}
+
+/* Timing helper for interactive rows. */
+.ease-lux {
+  transition-timing-function: var(--ease-lux);
 }
 
 @media (prefers-reduced-motion: reduce) {

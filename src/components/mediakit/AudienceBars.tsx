@@ -44,9 +44,9 @@ export function AudienceBars({ title, bars, accent = "blueberry", flags }: Props
               {flags && <span className="mr-1">{flagFor(b.label)}</span>}
               {b.label}
             </span>
-            <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
+            <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-[var(--surface-2)] shadow-[inset_0_1px_2px_rgba(33,29,20,0.08)]">
               <div
-                className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 ease-out"
+                className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
                 style={{ background: color, width: `${(b.pct / max) * 100}%` }}
               />
             </div>

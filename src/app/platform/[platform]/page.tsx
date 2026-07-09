@@ -66,14 +66,21 @@ export default function PlatformDashboard() {
   }, [platform]);
 
   useEffect(() => {
-    load();
-    try {
-      const raw = localStorage.getItem("hub_handles");
-      const saved = raw ? JSON.parse(raw) : {};
-      if (platform) setHandle(saved[platform] || DEFAULT_HANDLES[platform]);
-    } catch {
-      if (platform) setHandle(DEFAULT_HANDLES[platform]);
+    async function runLoad() {
+      await load();
     }
+    runLoad();
+
+    function restoreHandle() {
+      try {
+        const raw = localStorage.getItem("hub_handles");
+        const saved = raw ? JSON.parse(raw) : {};
+        if (platform) setHandle(saved[platform] || DEFAULT_HANDLES[platform]);
+      } catch {
+        if (platform) setHandle(DEFAULT_HANDLES[platform]);
+      }
+    }
+    restoreHandle();
   }, [load, platform]);
 
   if (!platform) {

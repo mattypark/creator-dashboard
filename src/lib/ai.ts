@@ -1,6 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { transcribeScreenshot } from "./gemini";
+import { remediateAnalytics } from "./extract-remediate";
+import type { ExtractedAnalytics } from "./extract-remediate";
 import type { Platform } from "./types";
 import { PLATFORM_META } from "./types";
+
+// Extraction shapes live with the remediation layer (single source of truth);
+// re-exported here so existing importers keep working.
+export type { ExtractedAnalytics, ExtractedPost } from "./extract-remediate";
 
 // Cheapest capable model — fine for scripting, summaries, ideas, and vision
 // extraction. Override with ANTHROPIC_MODEL env if you ever want more power.
@@ -100,38 +107,71 @@ export function ideasFromThought(thought: string) {
   );
 }
 
-export interface ExtractedAnalytics {
-  platform: string | null;
-  followers: number | null;
-  views: number | null;
-  engagement: number | null; // percent, e.g. 8.4
-  gender: { label: string; pct: number }[];
-  age: { label: string; pct: number }[];
-  geo: { label: string; pct: number }[];
-  active_hours: number[]; // up to 24 values, share of activity per hour
-  top_posts: { title: string; views: number }[];
-}
+// Shared output contract for both extraction paths (Claude vision and the
+// Gemini-transcript -> Claude-normalize pipeline). Keep in sync with the
+// ExtractedAnalytics interface in extract-remediate.ts.
+const EXTRACT_SCHEMA =
+  'Return ONLY minified JSON of this exact shape (use null / [] when a value is ' +
+  'not shown, numbers as plain numbers not strings): {"platform": string|null, ' +
+  '"followers": number|null, "following": number|null, "views": number|null, ' +
+  '"engagement": number|null, "profile_visits": number|null, "reach": number|null, ' +
+  '"gender": [{"label": string, "pct": number}], "age": [{"label": string, "pct": number}], ' +
+  '"geo": [{"label": string, "pct": number}], "active_hours": number[], ' +
+  '"top_posts": [{"title": string, "views": number|null, "likes": number|null, ' +
+  '"comments": number|null, "shares": number|null, "saves": number|null, ' +
+  '"posted_at": string|null}]}. ' +
+  "Be exhaustive: capture every legible stat — per-post likes/comments/shares/saves " +
+  "count too, not just views. posted_at is an ISO date string if a post date is " +
+  "shown, else null. active_hours is a 24-length array (hour 0..23) of relative " +
+  "audience activity if a when-your-followers-are-active chart is shown, else []. " +
+  "Never invent or estimate values that are not visible.";
 
 const EXTRACT_PROMPT =
   "You are reading a screenshot of a creator's social-media analytics dashboard " +
-  "(X, YouTube, Instagram, TikTok, or LinkedIn insights). Extract what is visible. " +
-  "Return ONLY minified JSON of this exact shape (use null / [] when a field is not " +
-  'shown, numbers as plain integers not strings): {"platform": string|null, ' +
-  '"followers": number|null, "views": number|null, "engagement": number|null, ' +
-  '"gender": [{"label": string, "pct": number}], "age": [{"label": string, "pct": number}], ' +
-  '"geo": [{"label": string, "pct": number}], "active_hours": number[], ' +
-  '"top_posts": [{"title": string, "views": number}]}. ' +
-  "active_hours is a 24-length array (hour 0..23) of relative audience activity if a " +
-  "when-your-followers-are-active chart is shown, else []. Do not invent data.";
+  "(X, YouTube, Instagram, TikTok, or LinkedIn insights). Extract EVERYTHING " +
+  "legible. " +
+  EXTRACT_SCHEMA;
 
-/** Vision: pull structured analytics out of an uploaded screenshot. */
+const NORMALIZE_SYSTEM =
+  "You normalize an exhaustive plain-text transcription of a creator's " +
+  "social-media analytics screenshot (X, YouTube, Instagram, TikTok, or " +
+  "LinkedIn insights) into structured data. Use ONLY values present in the " +
+  "transcription. " +
+  EXTRACT_SCHEMA;
+
+/**
+ * Pull structured analytics out of an uploaded screenshot.
+ *
+ * When GEMINI_API_KEY is set: Gemini flash-lite transcribes the image
+ * exhaustively, then Claude normalizes that text (image not re-sent) into the
+ * shared schema. Any Gemini failure falls back silently to the single-pass
+ * Claude vision path. Both paths return the same shape.
+ *
+ * Model output is untrusted: both paths run through remediateAnalytics(), so
+ * callers always receive a guaranteed-clean ExtractedAnalytics.
+ */
 export async function extractAnalytics(
   imageBase64: string,
   mediaType: string,
-): Promise<ExtractedAnalytics> {
+): Promise<{ data: ExtractedAnalytics; usedGemini: boolean }> {
+  const transcript = await transcribeScreenshot(imageBase64, mediaType);
+  if (transcript) {
+    try {
+      const raw = await completeJson<unknown>(
+        NORMALIZE_SYSTEM,
+        `TRANSCRIPTION:\n${transcript}`,
+        2000,
+      );
+      return { data: remediateAnalytics(raw), usedGemini: true };
+    } catch (e) {
+      if (e instanceof AINotConfiguredError) throw e; // keyless -> 503 upstream
+      // Normalization hiccup: fall through to the vision path below.
+    }
+  }
+
   const res = await client().messages.create({
     model: MODEL,
-    max_tokens: 1500,
+    max_tokens: 2000,
     messages: [
       {
         role: "user",
@@ -157,7 +197,10 @@ export async function extractAnalytics(
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
   if (start === -1 || end === -1) throw new Error("Vision did not return JSON");
-  return JSON.parse(raw.slice(start, end + 1)) as ExtractedAnalytics;
+  return {
+    data: remediateAnalytics(JSON.parse(raw.slice(start, end + 1))),
+    usedGemini: false,
+  };
 }
 
 type ImageBlock = {

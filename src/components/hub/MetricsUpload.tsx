@@ -48,7 +48,7 @@ export function MetricsUpload({ onIngested, flash }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--blueberry)]/30 bg-[var(--blueberry)]/5 p-4 flex flex-col gap-3">
+    <div className="note-green p-4 flex flex-col gap-3">
       <div>
         <p className="kicker text-[var(--blueberry)]">Upload analytics</p>
         <p className="mt-1 text-xs text-[var(--muted)]">
@@ -60,7 +60,7 @@ export function MetricsUpload({ onIngested, flash }: Props) {
         <select
           value={platform}
           onChange={(e) => setPlatform(e.target.value as MetricPlatform | "")}
-          className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm outline-none"
+          className="input-engraved rounded-lg px-2 py-1.5 text-sm outline-none"
         >
           <option value="">Auto-detect platform</option>
           {PLATFORMS.map((p) => (
@@ -72,7 +72,7 @@ export function MetricsUpload({ onIngested, flash }: Props) {
         <button
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--blueberry)] px-3 py-1.5 text-sm font-medium text-white hover:brightness-105 disabled:opacity-50"
+          className="btn-minted-green inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         >
           <Upload size={14} /> {busy ? "Reading…" : "Upload screenshot"}
         </button>

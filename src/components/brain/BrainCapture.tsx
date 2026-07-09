@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
+import { downscaleImage } from "@/lib/downscale-image";
 
 /** Decide whether the pasted text is a URL or a raw thought. */
 function toPayload(input: string): { url: string } | { text: string } {
@@ -41,20 +42,10 @@ export function BrainCapture({ onCaptured, flash }: Props) {
   async function attachFiles(files: Iterable<File>) {
     const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
     const loaded = await Promise.all(
-      list.map(
-        (file) =>
-          new Promise<Img>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () =>
-              resolve({
-                base64: (reader.result as string).split(",")[1] ?? "",
-                mediaType: file.type || "image/png",
-                name: file.name,
-              });
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          }),
-      ),
+      list.map(async (file) => {
+        const { base64, mediaType } = await downscaleImage(file);
+        return { base64, mediaType, name: file.name };
+      }),
     );
     if (loaded.length) setImages((prev) => [...prev, ...loaded]);
   }
@@ -128,10 +119,10 @@ export function BrainCapture({ onCaptured, flash }: Props) {
         setIsDragOver(false);
         attachFiles(e.dataTransfer.files);
       }}
-      className={`bg-[var(--surface)] border rounded-xl p-3 flex flex-col gap-2 transition-colors ${
+      className={`card p-3 flex flex-col gap-2 transition-[border-color,box-shadow] duration-300 ease-lux ${
         isDragOver
-          ? "border-[var(--mango)] bg-[var(--mango)]/5"
-          : "border-[var(--border)]"
+          ? "!border-[var(--mango)] shadow-[0_0_0_3px_color-mix(in_oklab,var(--mango)_15%,transparent)]"
+          : ""
       }`}
     >
       <textarea
@@ -212,7 +203,7 @@ export function BrainCapture({ onCaptured, flash }: Props) {
         <button
           onClick={enter}
           disabled={isBusy || (!value.trim() && images.length === 0)}
-          className="text-xs bg-[var(--mango)] text-white rounded-lg px-4 py-1.5 hover:brightness-105 disabled:opacity-50"
+          className="btn-minted rounded-lg px-4 py-1.5 text-xs font-medium disabled:opacity-50"
         >
           {isBusy ? "Entering…" : "Enter"}
         </button>

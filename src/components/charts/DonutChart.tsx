@@ -23,7 +23,14 @@ export function DonutChart({
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
   const r = (size - thickness) / 2;
   const circ = 2 * Math.PI * r;
-  let offset = 0;
+
+  // Precompute each segment's cumulative offset immutably before rendering.
+  const segments = data.reduce<{ offset: number; dash: number }[]>((acc, d, i) => {
+    const frac = d.value / total;
+    const dash = frac * circ;
+    const prevOffset = i === 0 ? 0 : acc[i - 1].offset + acc[i - 1].dash;
+    return [...acc, { offset: prevOffset, dash }];
+  }, []);
 
   return (
     <div className="flex items-center gap-4">
@@ -37,9 +44,8 @@ export function DonutChart({
           strokeWidth={thickness}
         />
         {data.map((d, i) => {
-          const frac = d.value / total;
-          const dash = frac * circ;
-          const seg = (
+          const { offset, dash } = segments[i];
+          return (
             <motion.circle
               key={d.label}
               cx={size / 2}
@@ -57,8 +63,6 @@ export function DonutChart({
               transition={{ duration: 0.5, delay: i * 0.08 }}
             />
           );
-          offset += dash;
-          return seg;
         })}
         {centerLabel && (
           <text

@@ -43,13 +43,13 @@ export function PostEntry({ onAdded, flash }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col gap-3">
+    <div className="card p-4 flex flex-col gap-3">
       <p className="kicker">Log a post</p>
       <div className="flex flex-wrap gap-2">
         <select
           value={platform}
           onChange={(e) => setPlatform(e.target.value as MetricPlatform)}
-          className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm outline-none"
+          className="input-engraved rounded-lg px-2 py-1.5 text-sm outline-none"
         >
           {PLATFORMS.map((p) => (
             <option key={p} value={p}>
@@ -61,26 +61,26 @@ export function PostEntry({ onAdded, flash }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Post title / description"
-          className="flex-1 min-w-40 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm outline-none focus:border-[var(--mango)]"
+          className="input-engraved flex-1 min-w-40 rounded-lg px-3 py-1.5 text-sm outline-none"
         />
         <input
           value={views}
           onChange={(e) => setViews(e.target.value)}
           inputMode="numeric"
           placeholder="views"
-          className="w-24 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm outline-none"
+          className="input-engraved w-24 rounded-lg px-2 py-1.5 text-sm outline-none"
         />
         <input
           value={likes}
           onChange={(e) => setLikes(e.target.value)}
           inputMode="numeric"
           placeholder="likes"
-          className="w-24 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-sm outline-none"
+          className="input-engraved w-24 rounded-lg px-2 py-1.5 text-sm outline-none"
         />
         <button
           onClick={add}
           disabled={busy || !title.trim()}
-          className="rounded-lg bg-[var(--mango)] px-3 py-1.5 text-sm font-medium text-white hover:brightness-105 disabled:opacity-50"
+          className="btn-minted rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         >
           {busy ? "…" : "Add"}
         </button>

@@ -4,10 +4,10 @@ type Variant = "mango" | "outline" | "ghost";
 type Size = "sm" | "md";
 
 const VARIANTS: Record<Variant, string> = {
-  mango: "bg-[var(--mango)] text-white hover:brightness-105",
-  outline:
-    "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--surface-2)]",
-  ghost: "text-[var(--muted)] hover:text-[var(--foreground)]",
+  mango: "btn-minted",
+  outline: "btn-engraved",
+  ghost:
+    "text-[var(--muted)] transition-colors duration-300 ease-lux hover:text-[var(--foreground)] active:scale-[0.98]",
 };
 
 const SIZES: Record<Size, string> = {
@@ -16,7 +16,7 @@ const SIZES: Record<Size, string> = {
 };
 
 function classes(variant: Variant, size: Size, extra = "") {
-  return `inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-all active:scale-[0.98] disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${extra}`;
+  return `inline-flex items-center justify-center gap-1.5 rounded-lg font-medium disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]} ${extra}`;
 }
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
