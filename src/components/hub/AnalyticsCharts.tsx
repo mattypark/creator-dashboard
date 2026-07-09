@@ -138,18 +138,7 @@ export function AnalyticsCharts({ groups, reloadKey }: Props) {
         <Card title="Top posts">
           <ol className="flex flex-col divide-y divide-[var(--border)]/70">
             {topPosts.map((p, i) => (
-              <li
-                key={p.id}
-                className="flex items-center gap-3 py-2 text-sm first:pt-0 last:pb-0"
-              >
-                <span className="w-5 shrink-0 font-serif text-xs font-semibold text-[var(--muted)]/70 tabular-nums">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="truncate">{p.title}</span>
-                <span className="ml-auto shrink-0 font-medium text-[var(--blueberry)] tabular-nums">
-                  {fmt(p.views)}
-                </span>
-              </li>
+              <TopPostRow key={p.id} post={p} index={i} onSaved={load} />
             ))}
           </ol>
         </Card>
@@ -160,4 +149,81 @@ export function AnalyticsCharts({ groups, reloadKey }: Props) {
 
 function score(p: AudienceProfile): number {
   return p.gender.length + p.age.length + p.geo.length + p.active_hours.length;
+}
+
+/** Ledger row with click-to-edit views (manual override for blocked platforms). */
+function TopPostRow({
+  post,
+  index,
+  onSaved,
+}: {
+  post: Post;
+  index: number;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(post.views ?? 0));
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    const views = Number(draft.replace(/[,\s]/g, ""));
+    if (!Number.isFinite(views) || views < 0) {
+      setEditing(false);
+      return;
+    }
+    setBusy(true);
+    try {
+      await fetch("/api/posts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: post.id, views }),
+      });
+      setEditing(false);
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="group flex items-center gap-3 py-2 text-sm first:pt-0 last:pb-0">
+      <span className="w-5 shrink-0 font-serif text-xs font-semibold text-[var(--muted)]/70 tabular-nums">
+        {String(index + 1).padStart(2, "0")}
+      </span>
+      <span className="truncate">{post.title}</span>
+      {editing ? (
+        <span className="ml-auto flex shrink-0 items-center gap-1">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") save();
+              if (e.key === "Escape") setEditing(false);
+            }}
+            inputMode="numeric"
+            autoFocus
+            className="w-24 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-right text-sm tabular-nums outline-none focus:border-[var(--mango)]"
+          />
+          <button
+            onClick={save}
+            disabled={busy}
+            className="text-[11px] font-medium text-[var(--mango)] hover:brightness-110 disabled:opacity-50"
+          >
+            {busy ? "…" : "save"}
+          </button>
+        </span>
+      ) : (
+        <button
+          onClick={() => {
+            setDraft(String(post.views ?? 0));
+            setEditing(true);
+          }}
+          title="Click to edit views"
+          className="ml-auto shrink-0 rounded px-1 font-medium text-[var(--blueberry)] tabular-nums transition-colors hover:bg-[var(--surface-2)]"
+        >
+          {fmt(post.views)}
+        </button>
+      )}
+    </li>
+  );
 }

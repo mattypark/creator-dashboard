@@ -3,6 +3,9 @@
 import { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { downscaleImage } from "@/lib/downscale-image";
+import type { MetricPlatform } from "@/lib/types";
+
+const PLATFORMS: MetricPlatform[] = ["x", "youtube", "linkedin", "instagram", "tiktok"];
 
 /** Decide whether the pasted text is a URL or a raw thought. */
 function toPayload(input: string): { url: string } | { text: string } {
@@ -35,6 +38,7 @@ export function BrainCapture({ onCaptured, flash }: Props) {
   const [value, setValue] = useState("");
   const [images, setImages] = useState<Img[]>([]);
   const [action, setAction] = useState<ImageAction>("inspiration");
+  const [platform, setPlatform] = useState<MetricPlatform | "">("");
   const [isBusy, setIsBusy] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -55,7 +59,12 @@ export function BrainCapture({ onCaptured, flash }: Props) {
     const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64: img.base64, mediaType: img.mediaType, action }),
+      body: JSON.stringify({
+        imageBase64: img.base64,
+        mediaType: img.mediaType,
+        action,
+        platform: platform || undefined, // hint for analytics when auto-detect fails
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -163,17 +172,34 @@ export function BrainCapture({ onCaptured, flash }: Props) {
               </div>
             ))}
           </div>
-          <select
-            value={action}
-            onChange={(e) => setAction(e.target.value as ImageAction)}
-            className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs outline-none"
-          >
-            {IMAGE_ACTIONS.map((a) => (
-              <option key={a.value} value={a.value}>
-                {a.label} {images.length > 1 ? `— all ${images.length} images` : ""}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={action}
+              onChange={(e) => setAction(e.target.value as ImageAction)}
+              className="flex-1 min-w-48 bg-[var(--surface)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs outline-none"
+            >
+              {IMAGE_ACTIONS.map((a) => (
+                <option key={a.value} value={a.value}>
+                  {a.label} {images.length > 1 ? `— all ${images.length} images` : ""}
+                </option>
+              ))}
+            </select>
+            {action === "analytics" && (
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value as MetricPlatform | "")}
+                className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs outline-none"
+                title="Which platform is this screenshot from?"
+              >
+                <option value="">Auto-detect platform</option>
+                {PLATFORMS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
       )}
 
